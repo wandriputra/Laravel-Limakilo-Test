@@ -12,6 +12,9 @@ use Session;
 class UserController extends Controller
 {
     //
+    private $username = 'root@root.com';
+    private $password = 'root';
+
     function __construct(){
 
     }
@@ -27,7 +30,11 @@ class UserController extends Controller
 
     function postLogin(Request $request){
       $data = $request->except('_token');;
-      Session::put('email', $data['email']);
+      if($data['email'] == $this->username && $data['password'] == $this->password ){
+        Session::put('email', $data['email']);
+      }else{
+        return redirect()->back();
+      }
       return redirect('auth/home');
     }
 
