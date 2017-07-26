@@ -8,6 +8,8 @@ use App\Http\Requests;
 // use Illuminate\Contracts\Auth\Guard;
 
 use Session;
+use Datatables;
+use Collection;
 
 class UserController extends Controller
 {
@@ -38,24 +40,38 @@ class UserController extends Controller
       return redirect('auth/home');
     }
 
-    private function cekFromJson($data){
+    private function cekFromJson(){
       $urljason = "http://jsonplaceholder.typicode.com/comments";
       $url="http://jsonplaceholder.typicode.com/comments";
       $json = file_get_contents($url);
       $jsonArray = json_decode($json, TRUE);
+      // dd($jsonArray);
       $collection = collect($jsonArray);
-
       return $collection;
-
     }
+
+    function getDetailData($id){
+      $data = $this->cekFromJson()->whereLoose('id', $id)->values();
+      return $data;
+    }
+
 
     function getHome(){
       if(Session::get('email') === 'kosong'){
         return redirect('/auth/login');
       }
       return view('welcome');
+    }
 
-
+    function getDatatablesData($delete=false, $id=null){
+      $data = $this->cekFromJson();
+      if($delete || $id != null){
+        $data->pop($id);
+      }
+      return Datatables::of($data)
+                ->addColumn('action', function ($data) {
+                  return '<a href="#" onclick="deleteData(this, event)" data-id="'.$data['id'].'" class="btn btn-xs btn-warning"><i class="glyphicon glyphicon-trash"></i> Delete</a> | <a href="#" data-id="'.$data['id'].'" onclick="showData(this, event)" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> Edit</a>';})
+                ->make(true);
     }
 
     function getLogout(){
